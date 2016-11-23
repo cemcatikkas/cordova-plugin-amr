@@ -38,8 +38,8 @@ amrExport.AD_SIZE = {
 amrExport.setOptions =
 	function(options, successCallback, failureCallback) {
 	  if(typeof options === 'object' 
-		  && typeof options.publisherId === 'string'
-	      && options.publisherId.length > 0) {
+		  && typeof options.amrAppId === 'string'
+	      && options.amrAppId.length > 0) {
 		  cordova.exec(
 			      successCallback,
 			      failureCallback,
@@ -49,33 +49,10 @@ amrExport.setOptions =
 			  );
 	  } else {
 		  if(typeof failureCallback === 'function') {
-			  failureCallback('options.publisherId should be specified.')
+			  failureCallback('options.amrAppId should be specified.')
 		  }
 	  }
 	};
-
-/**
- * Creates a new Amr banner view.
- *
- * @param {!Object} options The options used to create a banner.  They should
- *        be specified similar to the following.
- *
- *        {
- *          'publisherId': 'MY_PUBLISHER_ID',
- *          'adSize': Amr.AD_SIZE.AD_SIZE_CONSTANT,
- *          'positionAtTop': false
- *        }
- *
- *        publisherId is the publisher ID from your Amr site, adSize
- *        is one of the AdSize constants, and positionAtTop is a boolean to
- *        determine whether to create the banner above or below the app content.
- *        A publisher ID and AdSize are required.  The default for postionAtTop
- *        is false, meaning the banner would be shown below the app content.
- * @param {function()} successCallback The function to call if the banner was
- *         created successfully.
- * @param {function()} failureCallback The function to call if create banner
- *         was unsuccessful.
- */
 amrExport.createBannerView =
 function(options, successCallback, failureCallback) {
   if(typeof options === 'undefined' || options == null) options = {};
@@ -88,22 +65,6 @@ function(options, successCallback, failureCallback) {
   );
 };
 
-/**
- * Creates a new Amr interstitial view.
- *
- * @param {!Object} options The options used to create a interstitial.  They should
- *        be specified similar to the following.
- *
- *        {
- *          'publisherId': 'MY_PUBLISHER_ID'
- *        }
- *
- *        publisherId is the publisher ID from your Amr site, which is required.  
- * @param {function()} successCallback The function to call if the interstitial was
- *         created successfully.
- * @param {function()} failureCallback The function to call if create interstitial
- *         was unsuccessful.
- */
 amrExport.createInterstitialView =
 function(options, successCallback, failureCallback) {
   cordova.exec(
