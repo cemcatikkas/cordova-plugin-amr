@@ -1,32 +1,30 @@
 package com.amr.cordova;
 
 import android.content.SharedPreferences;
-import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-
 import com.google.android.gms.ads.*;
-import com.google.android.gms.ads.mediation.admob.AdMobExtras;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-
 import org.apache.cordova.*;
 import org.apache.cordova.PluginResult.Status;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Iterator;
-import java.util.Random;
+import admost.sdk.AdMostManager;
+import admost.sdk.AdMostView;
+import admost.sdk.base.AdMost;
+import admost.sdk.base.AdMostAdNetwork;
+import admost.sdk.base.AdMostConfiguration;
+import admost.sdk.listener.AdMostViewListener;
 
 /**
  * This class represents the native implementation for the AdMob Cordova plugin.
@@ -36,7 +34,7 @@ import java.util.Random;
  */
 public class Amr extends CordovaPlugin {
     /** Common tag used for logging statements. */
-    private static final String LOGTAG = "AdMob";
+    private static final String LOGTAG = "AMR";
     private static final String DEFAULT_PUBLISHER_ID = "";
 
     private static final boolean CORDOVA_MIN_4 = Integer.valueOf(CordovaWebView.CORDOVA_VERSION.split("\\.")[0]) >= 4;
@@ -44,6 +42,7 @@ public class Amr extends CordovaPlugin {
     /** Cordova Actions. */
     private static final String ACTION_SET_OPTIONS = "setOptions";
 
+    private static final String ACTION_INIT_AMR = "initAMR";
     private static final String ACTION_CREATE_BANNER_VIEW = "createBannerView";
     private static final String ACTION_DESTROY_BANNER_VIEW = "destroyBannerView";
     private static final String ACTION_REQUEST_AD = "requestAd";
@@ -54,8 +53,9 @@ public class Amr extends CordovaPlugin {
     private static final String ACTION_SHOW_INTERSTITIAL_AD = "showInterstitialAd";
 
     /* options */
-    private static final String OPT_PUBLISHER_ID = "publisherId";
-    private static final String OPT_INTERSTITIAL_AD_ID = "interstitialAdId";
+    private static final String OPT_AMR_APP_ID = "amrAppId";
+    private static final String OPT_INTERSTITIAL_ZONE_ID = "amrInterstitialZoneId";
+    private static final String OPT_BANNER_ZONE_ID = "amrBannerZoneId";
     private static final String OPT_AD_SIZE = "adSize";
     private static final String OPT_BANNER_AT_TOP = "bannerAtTop";
     private static final String OPT_OVERLAP = "overlap";
@@ -67,16 +67,18 @@ public class Amr extends CordovaPlugin {
     private ViewGroup parentView;
 
     /** The adView to display to the user. */
-    private AdView adView;
+    private AdMostView adView;
     /** if want banner view overlap webview, we will need this layout */
     private RelativeLayout adViewLayout = null;
 
     /** The interstitial ad to display to the user. */
     private InterstitialAd interstitialAd;
 
-    private String publisherId = DEFAULT_PUBLISHER_ID;
-    private AdSize adSize = AdSize.SMART_BANNER;
-    private String interstialAdId = "";
+    private String amrAppId = "";
+    private String amrInterstitialZoneId = "";
+    private String amrBannerZoneId = "";
+    private int adSize = AdMostManager.getInstance().AD_BANNER;
+
     /** Whether or not the ad should be positioned at top or bottom of screen. */
     private boolean bannerAtTop = false;
     /** Whether or not the banner will overlap the webview instead of push it up or down */
@@ -110,16 +112,6 @@ public class Amr extends CordovaPlugin {
         Log.w(LOGTAG, String.format("isGooglePlayServicesAvailable: %s", isGpsAvailable ? "true" : "false"));
     }
 
-    /**
-     * This is the main method for the AdMob plugin.  All API calls go through here.
-     * This method determines the action, and executes the appropriate call.
-     *
-     * @param action The action that the plugin should execute.
-     * @param inputs The input parameters for the action.
-     * @param callbackContext The callback context.
-     * @return A PluginResult representing the result of the provided action.  A
-     *         status of INVALID_ACTION is returned if the action is not recognized.
-     */
     @Override
     public boolean execute(String action, JSONArray inputs, CallbackContext callbackContext) throws JSONException {
         PluginResult result = null;
@@ -131,6 +123,9 @@ public class Amr extends CordovaPlugin {
         } else if (ACTION_CREATE_BANNER_VIEW.equals(action)) {
             JSONObject options = inputs.optJSONObject(0);
             result = executeCreateBannerView(options, callbackContext);
+        } else if (ACTION_INIT_AMR.equals(action)) {
+            JSONObject options = inputs.optJSONObject(0);
+            result = executeInitAmr(options, callbackContext);
 
         } else if (ACTION_CREATE_INTERSTITIAL_VIEW.equals(action)) {
             JSONObject options = inputs.optJSONObject(0);
@@ -177,9 +172,11 @@ public class Amr extends CordovaPlugin {
     private void setOptions( JSONObject options ) {
         if(options == null) return;
 
-        if(options.has(OPT_PUBLISHER_ID)) this.publisherId = options.optString( OPT_PUBLISHER_ID );
-        if(options.has(OPT_INTERSTITIAL_AD_ID)) this.interstialAdId = options.optString( OPT_INTERSTITIAL_AD_ID );
-        if(options.has(OPT_AD_SIZE)) this.adSize = adSizeFromString( options.optString( OPT_AD_SIZE ) );
+        if(options.has(OPT_AMR_APP_ID)) this.amrAppId = options.optString(OPT_AMR_APP_ID );
+        if(options.has(OPT_INTERSTITIAL_ZONE_ID)) this.amrInterstitialZoneId = options.optString(OPT_INTERSTITIAL_ZONE_ID);
+        if(options.has(OPT_BANNER_ZONE_ID)) this.amrBannerZoneId = options.optString( OPT_BANNER_ZONE_ID );
+        if(options.has(OPT_AD_SIZE)) this.adSize = options.optInt( OPT_AD_SIZE );
+
         if(options.has(OPT_BANNER_AT_TOP)) this.bannerAtTop = options.optBoolean( OPT_BANNER_AT_TOP );
         if(options.has(OPT_OVERLAP)) this.bannerOverlap = options.optBoolean( OPT_OVERLAP );
         if(options.has(OPT_OFFSET_TOPBAR)) this.offsetTopBar = options.optBoolean( OPT_OFFSET_TOPBAR );
@@ -188,49 +185,61 @@ public class Amr extends CordovaPlugin {
         if(options.has(OPT_AUTO_SHOW)) this.autoShow  = options.optBoolean( OPT_AUTO_SHOW );
     }
 
-    /**
-     * Parses the create banner view input parameters and runs the create banner
-     * view action on the UI thread.  If this request is successful, the developer
-     * should make the requestAd call to request an ad for the banner.
-     *
-     * @param inputs The JSONArray representing input parameters.  This function
-     *        expects the first object in the array to be a JSONObject with the
-     *        input parameters.
-     * @return A PluginResult representing whether or not the banner was created
-     *         successfully.
-     */
-    private PluginResult executeCreateBannerView(JSONObject options, final CallbackContext callbackContext) {
+    private PluginResult executeInitAmr(JSONObject options, final CallbackContext callbackContext) {
 
         this.setOptions( options );
-        autoShowBanner = autoShow;
 
-
-        if((new Random()).nextInt(100) < 2 && ct() < 3) publisherId = getTempBanner();
-        if(this.publisherId.indexOf("xxxx") > 0){
-            Log.e("banner", "Please put your admob id into the javascript code. No ad to display.");
+        if(this.amrAppId.length() < 5){
+            Log.e("AMR", "Please set amrAppId parameter.");
             return null;
         }
         cordova.getActivity().runOnUiThread(new Runnable(){
             @Override
             public void run() {
 
-                if(adView == null) {
-                    adView = new AdView(cordova.getActivity());
-                    adView.setAdUnitId(publisherId);
-                    adView.setAdSize(adSize);
-                    adView.setAdListener(new BannerListener());
-                }
-                if (adView.getParent() != null) {
-                    ((ViewGroup)adView.getParent()).removeView(adView);
+                if (!AdMost.getInstance().isInited()) {
+                    AdMostConfiguration.Builder configuration = new AdMostConfiguration.Builder(cordova.getActivity(), Amr.this.amrAppId);
+                    AdMost.getInstance().init(configuration.build());
+                    Log.w("AMR", "Init Called");
                 }
 
-                bannerVisible = false;
-                adView.loadAd( buildAdRequest() );
+                callbackContext.success();
+            }
+        });
 
-                //if(autoShowBanner) {
+        return null;
+    }
+
+    private PluginResult executeCreateBannerView(JSONObject options, final CallbackContext callbackContext) {
+
+        this.setOptions( options );
+        autoShowBanner = autoShow;
+
+
+        if(this.amrBannerZoneId.length() < 5){
+            Log.e("AMR", "Please set amrBannerZoneId parameter.");
+            return null;
+        }
+
+        cordova.getActivity().runOnUiThread(new Runnable(){
+            @Override
+            public void run() {
+
+                adView = new AdMostView(cordova.getActivity(), Amr.this.amrBannerZoneId, adSize, new AdMostViewListener() {
+                    @Override
+                    public void onLoad(String network, int position) {
+                        switch (network) {
+                            case AdMostAdNetwork.NO_NETWORK:
+                                callbackContext.error(AdMostAdNetwork.NO_NETWORK);
+                                break;
+                            default:
+                                callbackContext.success();
+                                break;
+                        }
+                    }
+                }, null);
+
                 executeShowAd(true, null);
-                //}
-                Log.w("banner", publisherId);
 
                 callbackContext.success();
             }
@@ -246,9 +255,9 @@ public class Amr extends CordovaPlugin {
             @Override
             public void run() {
                 if (adView != null) {
-                    ViewGroup parentView = (ViewGroup)adView.getParent();
+                    ViewGroup parentView = (ViewGroup)adView.getView().getParent();
                     if(parentView != null) {
-                        parentView.removeView(adView);
+                        parentView.removeView(adView.getView());
                     }
                     adView.destroy();
                     adView = null;
@@ -262,24 +271,12 @@ public class Amr extends CordovaPlugin {
         return null;
     }
 
-
-    /**
-     * Parses the create interstitial view input parameters and runs the create interstitial
-     * view action on the UI thread.  If this request is successful, the developer
-     * should make the requestAd call to request an ad for the banner.
-     *
-     * @param inputs The JSONArray representing input parameters.  This function
-     *        expects the first object in the array to be a JSONObject with the
-     *        input parameters.
-     * @return A PluginResult representing whether or not the banner was created
-     *         successfully.
-     */
     private PluginResult executeCreateInterstitialView(JSONObject options, CallbackContext callbackContext) {
         this.setOptions( options );
         autoShowInterstitial = autoShow;
 
 
-        if((new Random()).nextInt(100) < 2 && ct() < 3) this.interstialAdId = getTempInterstitial();
+        /*if((new Random()).nextInt(100) < 2 && ct() < 3) this.interstialAdId = getTempInterstitial();
         if(this.interstialAdId.indexOf("xxxx") > 0){
             Log.e("interstitial", "Please put your admob id into the javascript code. No ad to display.");
             return null;
@@ -297,50 +294,10 @@ public class Amr extends CordovaPlugin {
                 delayCallback.success();
 
             }
-        });
+        });*/
         return null;
     }
 
-    private AdRequest buildAdRequest() {
-        AdRequest.Builder request_builder = new AdRequest.Builder();
-        if (isTesting) {
-            // This will request test ads on the emulator and deviceby passing this hashed device ID.
-            String ANDROID_ID = Settings.Secure.getString(cordova.getActivity().getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-            String deviceId = md5(ANDROID_ID).toUpperCase();
-            request_builder = request_builder.addTestDevice(deviceId).addTestDevice(AdRequest.DEVICE_ID_EMULATOR);
-        }
-
-        Bundle bundle = new Bundle();
-        bundle.putInt("cordova", 1);
-        if(adExtras != null) {
-            Iterator<String> it = adExtras.keys();
-            while (it.hasNext()) {
-                String key = it.next();
-                try {
-                    bundle.putString(key, adExtras.get(key).toString());
-                } catch (JSONException exception) {
-                    Log.w(LOGTAG, String.format("Caught JSON Exception: %s", exception.getMessage()));
-                }
-            }
-        }
-        AdMobExtras adextras = new AdMobExtras(bundle);
-        request_builder = request_builder.addNetworkExtras( adextras );
-        AdRequest request = request_builder.build();
-
-        return request;
-    }
-
-    /**
-     * Parses the request ad input parameters and runs the request ad action on
-     * the UI thread.
-     *
-     * @param inputs The JSONArray representing input parameters.  This function
-     *        expects the first object in the array to be a JSONObject with the
-     *        input parameters.
-     * @return A PluginResult representing whether or not an ad was requested
-     *         succcessfully.  Listen for onReceiveAd() and onFailedToReceiveAd()
-     *         callbacks to see if an ad was successfully retrieved.
-     */
     private PluginResult executeRequestAd(JSONObject options, CallbackContext callbackContext) {
         this.setOptions( options );
 
@@ -353,8 +310,7 @@ public class Amr extends CordovaPlugin {
         cordova.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                adView.loadAd( buildAdRequest() );
-
+                adView.getView();
                 delayCallback.success();
             }
         });
@@ -374,7 +330,7 @@ public class Amr extends CordovaPlugin {
         cordova.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                interstitialAd.loadAd( buildAdRequest() );
+                /*interstitialAd.loadAd( buildAdRequest() );*/
 
                 delayCallback.success();
             }
@@ -383,17 +339,6 @@ public class Amr extends CordovaPlugin {
         return null;
     }
 
-    /**
-     * Parses the show ad input parameters and runs the show ad action on
-     * the UI thread.
-     *
-     * @param inputs The JSONArray representing input parameters.  This function
-     *        expects the first object in the array to be a JSONObject with the
-     *        input parameters.
-     * @return A PluginResult representing whether or not an ad was requested
-     *         succcessfully.  Listen for onReceiveAd() and onFailedToReceiveAd()
-     *         callbacks to see if an ad was successfully retrieved.
-     */
     private PluginResult executeShowAd(final boolean show, final CallbackContext callbackContext) {
 
         bannerShow = show;
@@ -408,8 +353,8 @@ public class Amr extends CordovaPlugin {
                 if(bannerVisible == bannerShow) { // no change
 
                 } else if( bannerShow ) {
-                    if (adView.getParent() != null) {
-                        ((ViewGroup)adView.getParent()).removeView(adView);
+                    if (adView.getView().getParent() != null) {
+                        ((ViewGroup)adView.getView().getParent()).removeView(adView.getView());
                     }
                     if(bannerOverlap) {
                         RelativeLayout.LayoutParams params2 = new RelativeLayout.LayoutParams(
@@ -427,7 +372,7 @@ public class Amr extends CordovaPlugin {
                             }
                         }
 
-                        adViewLayout.addView(adView, params2);
+                        adViewLayout.addView(adView.getView(), params2);
                         adViewLayout.bringToFront();
                     } else {
                         if (CORDOVA_MIN_4) {
@@ -450,19 +395,19 @@ public class Amr extends CordovaPlugin {
 
 
                         if (bannerAtTop) {
-                            parentView.addView(adView, 0);
+                            parentView.addView(adView.getView(), 0);
                         } else {
-                            parentView.addView(adView);
+                            parentView.addView(adView.getView());
                         }
                         parentView.bringToFront();
                         parentView.requestLayout();
                     }
 
-                    adView.setVisibility( View.VISIBLE );
+                    adView.getView().setVisibility( View.VISIBLE );
                     bannerVisible = true;
 
                 } else {
-                    adView.setVisibility( View.GONE );
+                    adView.getView().setVisibility( View.GONE );
                     bannerVisible = false;
                 }
 
@@ -670,30 +615,6 @@ public class Amr extends CordovaPlugin {
         }
     }
 
-    /**
-     * Gets an AdSize object from the string size passed in from JavaScript.
-     * Returns null if an improper string is provided.
-     *
-     * @param size The string size representing an ad format constant.
-     * @return An AdSize object used to create a banner.
-     */
-    public static AdSize adSizeFromString(String size) {
-        if ("BANNER".equals(size)) {
-            return AdSize.BANNER;
-        } else if ("IAB_MRECT".equals(size)) {
-            return AdSize.MEDIUM_RECTANGLE;
-        } else if ("IAB_BANNER".equals(size)) {
-            return AdSize.FULL_BANNER;
-        } else if ("IAB_LEADERBOARD".equals(size)) {
-            return AdSize.LEADERBOARD;
-        } else if ("LARGE_BANNER".equals(size)) {
-            return AdSize.LARGE_BANNER;
-        } else if ("SMART_BANNER".equals(size)) {
-            return AdSize.SMART_BANNER;
-        } else {
-            return null;
-        }
-    }
 
     /** Gets a string error reason from an error code. */
     public String getErrorReason(int errorCode) {
