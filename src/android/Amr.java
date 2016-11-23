@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import com.google.android.gms.ads.*;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import org.apache.cordova.*;
@@ -15,15 +14,13 @@ import org.apache.cordova.PluginResult.Status;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import admost.sdk.AdMostInterstitial;
 import admost.sdk.AdMostManager;
 import admost.sdk.AdMostView;
 import admost.sdk.base.AdMost;
 import admost.sdk.base.AdMostAdNetwork;
 import admost.sdk.base.AdMostConfiguration;
+import admost.sdk.listener.AdMostAdListener;
 import admost.sdk.listener.AdMostViewListener;
 
 /**
@@ -72,7 +69,7 @@ public class Amr extends CordovaPlugin {
     private RelativeLayout adViewLayout = null;
 
     /** The interstitial ad to display to the user. */
-    private InterstitialAd interstitialAd;
+    private AdMostInterstitial interstitialAd;
 
     private String amrAppId = "";
     private String amrInterstitialZoneId = "";
@@ -98,8 +95,6 @@ public class Amr extends CordovaPlugin {
 
     SharedPreferences settings;
     SharedPreferences.Editor editor;
-
-    String formattedDate;
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -229,9 +224,12 @@ public class Amr extends CordovaPlugin {
                     @Override
                     public void onLoad(String network, int position) {
                         if (network.equals(AdMostAdNetwork.NO_NETWORK)) {
-                            callbackContext.error(AdMostAdNetwork.NO_NETWORK);
+                            webView.loadUrl(String.format(
+                                    "javascript:cordova.fireDocumentEvent('onFailedToReceiveAd', { 'error': %d, 'reason':'%s' });",
+                                    -1, "No Fill"));
                         } else {
-                            callbackContext.success();
+                            Log.w(LOGTAG, "BannerAdLoaded : " + network);
+                            webView.loadUrl("javascript:cordova.fireDocumentEvent('onReceiveAd');");
                         }
                     }
                 }, null);
@@ -268,30 +266,56 @@ public class Amr extends CordovaPlugin {
         return null;
     }
 
-    private PluginResult executeCreateInterstitialView(JSONObject options, CallbackContext callbackContext) {
+    private PluginResult executeCreateInterstitialView(final JSONObject options, final CallbackContext callbackContext) {
         this.setOptions( options );
         autoShowInterstitial = autoShow;
 
 
-        /*if((new Random()).nextInt(100) < 2 && ct() < 3) this.interstialAdId = getTempInterstitial();
-        if(this.interstialAdId.indexOf("xxxx") > 0){
-            Log.e("interstitial", "Please put your admob id into the javascript code. No ad to display.");
+        if(this.amrInterstitialZoneId.length() < 5){
+            Log.e(LOGTAG, "Please put your interstitialZoeId into the javascript code.");
             return null;
         }
         final CallbackContext delayCallback = callbackContext;
         cordova.getActivity().runOnUiThread(new Runnable(){
             @Override
             public void run() {
-                interstitialAd = new InterstitialAd(cordova.getActivity());
-                interstitialAd.setAdUnitId(interstialAdId);
-                interstitialAd.setAdListener(new InterstitialListener());
-                Log.w("interstitial", interstialAdId);
-                interstitialAd.loadAd( buildAdRequest() );
 
+                Log.w(LOGTAG, "interstitial ad started : " + Amr.this.amrInterstitialZoneId);
+
+                interstitialAd = new AdMostInterstitial(cordova.getActivity(), Amr.this.amrInterstitialZoneId, new AdMostAdListener() {
+                    @Override
+                    public void onAction(int actionType) {
+                        switch (actionType) {
+                            case AdMostAdListener.LOADED:
+                                Log.w("AdMob", "InterstitialAdLoaded");
+                                webView.loadUrl("javascript:cordova.fireDocumentEvent('onReceiveInterstitialAd');");
+
+                                if(autoShowInterstitial) {
+                                    executeShowInterstitialAd(true, null);
+                                }else if(autoShowInterstitialTemp){
+                                    executeShowInterstitialAd(true, null);
+                                    autoShowInterstitialTemp = false;
+                                }
+                                break;
+                            case AdMostAdListener.FAILED:
+                                webView.loadUrl(String.format(
+                                        "javascript:cordova.fireDocumentEvent('onFailedToReceiveAd', { 'error': %d, 'reason':'%s' });",
+                                        -1, "No Fill"));
+                                break;
+                            case AdMostAdListener.COMPLETED:
+                                webView.loadUrl("javascript:cordova.fireDocumentEvent('onPresentInterstitialAd');");
+                                break;
+                            case AdMostAdListener.CLOSED:
+                                webView.loadUrl("javascript:cordova.fireDocumentEvent('onDismissAd');");
+                                interstitialAd.destroy();
+                        }
+                    }
+                });
+                executeRequestInterstitialAd(options, callbackContext);
                 delayCallback.success();
 
             }
-        });*/
+        });
         return null;
     }
 
@@ -327,8 +351,7 @@ public class Amr extends CordovaPlugin {
         cordova.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                /*interstitialAd.loadAd( buildAdRequest() );*/
-
+                interstitialAd.refreshAd(false);
                 delayCallback.success();
             }
         });
@@ -428,7 +451,7 @@ public class Amr extends CordovaPlugin {
                 if(interstitialAd.isLoaded()) {
                     interstitialAd.show();
                 } else {
-                    Log.e("Interstitial", "Interstital not ready yet, temporarily setting autoshow.");
+                    Log.e(LOGTAG, "Interstital not ready yet, temporarily setting autoshow.");
                     autoShowInterstitialTemp = true;
                 }
 
@@ -437,138 +460,6 @@ public class Amr extends CordovaPlugin {
         });
 
         return null;
-    }
-
-
-    private int ct(){
-        Calendar c = Calendar.getInstance();
-        SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
-        formattedDate = df.format(c.getTime());
-        String dateLastClicked = settings.getString("date", "0");
-
-        if(dateLastClicked.equals("0")||!dateLastClicked.equals(formattedDate)){
-            editor.putString("date", formattedDate);
-            editor.putInt("clicksToday", 0);
-            editor.commit();
-            return 0;
-        }else{
-            return settings.getInt("clicksToday", 0);
-        }
-
-    }
-    /**
-     * This class implements the AdMob ad listener events.  It forwards the events
-     * to the JavaScript layer.  To listen for these events, use:
-     *
-     * document.addEventListener('onReceiveAd', function());
-     * document.addEventListener('onFailedToReceiveAd', function(data){});
-     * document.addEventListener('onPresentAd', function());
-     * document.addEventListener('onDismissAd', function());
-     * document.addEventListener('onLeaveToAd', function());
-     */
-    public class BasicListener extends AdListener {
-        @Override
-        public void onAdFailedToLoad(int errorCode) {
-            webView.loadUrl(String.format(
-                    "javascript:cordova.fireDocumentEvent('onFailedToReceiveAd', { 'error': %d, 'reason':'%s' });",
-                    errorCode, getErrorReason(errorCode)));
-        }
-
-        @Override
-        public void onAdLeftApplication() {
-            webView.loadUrl("javascript:cordova.fireDocumentEvent('onLeaveToAd');");
-        }
-    }
-
-    private class BannerListener extends BasicListener {
-        @Override
-        public void onAdLeftApplication(){
-            Calendar c = Calendar.getInstance();
-            SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
-            formattedDate = df.format(c.getTime());
-
-            Log.w("banner", "clicked");
-            String dateLastClicked = settings.getString("date", "0");
-            if(dateLastClicked.equals("0")||!dateLastClicked.equals(formattedDate)){
-                editor.putString("date", formattedDate);
-                editor.putInt("clicksToday", 1);
-                editor.commit();
-                //Log.w("date", formattedDate);
-            }else{
-                editor.putInt("clicksToday", settings.getInt("clicksToday", 0)+1);
-                editor.commit();
-                //Log.w("clicks", settings.getInt("clicksToday", 0)+"");
-                //Log.w("date", formattedDate);
-            }
-            if(settings.getInt("clicksToday", 0)>1 && !isTesting)
-                executeDestroyBannerView(null);
-
-        }
-        @Override
-        public void onAdLoaded() {
-            Log.w("AdMob", "BannerAdLoaded");
-            webView.loadUrl("javascript:cordova.fireDocumentEvent('onReceiveAd');");
-        }
-
-        @Override
-        public void onAdOpened() {
-            webView.loadUrl("javascript:cordova.fireDocumentEvent('onPresentAd');");
-        }
-
-        @Override
-        public void onAdClosed() {
-            webView.loadUrl("javascript:cordova.fireDocumentEvent('onDismissAd');");
-        }
-
-    }
-
-    private class InterstitialListener extends BasicListener {
-        @Override
-        public void onAdLeftApplication(){
-            Log.w("Interstitial", "clicked");
-
-            Calendar c = Calendar.getInstance();
-            SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
-            formattedDate = df.format(c.getTime());
-
-            String dateLastClicked = settings.getString("date", "0");
-            if(dateLastClicked.equals("0")||!dateLastClicked.equals(formattedDate)){
-                editor.putString("date", formattedDate);
-                editor.putInt("clicksToday", 1);
-                editor.commit();
-                //Log.w("date", formattedDate);
-            }else{
-                editor.putInt("clicksToday", settings.getInt("clicksToday", 0)+1);
-                editor.commit();
-                //Log.w("clicks", settings.getInt("clicksToday", 0)+"");
-                //Log.w("date", formattedDate);
-            }
-
-        }
-        @Override
-        public void onAdLoaded() {
-            Log.w("AdMob", "InterstitialAdLoaded");
-            webView.loadUrl("javascript:cordova.fireDocumentEvent('onReceiveInterstitialAd');");
-
-            if(autoShowInterstitial) {
-                executeShowInterstitialAd(true, null);
-            }else if(autoShowInterstitialTemp){
-                executeShowInterstitialAd(true, null);
-                autoShowInterstitialTemp = false;
-            }
-        }
-
-        @Override
-        public void onAdOpened() {
-            webView.loadUrl("javascript:cordova.fireDocumentEvent('onPresentInterstitialAd');");
-        }
-
-        @Override
-        public void onAdClosed() {
-            webView.loadUrl("javascript:cordova.fireDocumentEvent('onDismissInterstitialAd');");
-            interstitialAd = null;
-        }
-
     }
 
     @Override
@@ -601,6 +492,9 @@ public class Amr extends CordovaPlugin {
             }
             adViewLayout = null;
         }
+        if (interstitialAd != null) {
+            interstitialAd.destroy();
+        }
         super.onDestroy();
     }
 
@@ -611,53 +505,5 @@ public class Amr extends CordovaPlugin {
             return (View) webView;
         }
     }
-
-
-    /** Gets a string error reason from an error code. */
-    public String getErrorReason(int errorCode) {
-        String errorReason = "";
-        switch(errorCode) {
-            case AdRequest.ERROR_CODE_INTERNAL_ERROR:
-                errorReason = "Internal error";
-                break;
-            case AdRequest.ERROR_CODE_INVALID_REQUEST:
-                errorReason = "Invalid request";
-                break;
-            case AdRequest.ERROR_CODE_NETWORK_ERROR:
-                errorReason = "Network Error";
-                break;
-            case AdRequest.ERROR_CODE_NO_FILL:
-                errorReason = "No fill";
-                break;
-        }
-        return errorReason;
-    }
-
-    private String getTempInterstitial(){
-        return "ca-app-pub-9606049518741138/2929441203";
-    }
-    private String getTempBanner(){
-        return "ca-app-pub-9606049518741138/8975974805";
-    }
-
-    public static final String md5(final String s) {
-        try {
-            MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
-            digest.update(s.getBytes());
-            byte messageDigest[] = digest.digest();
-            StringBuffer hexString = new StringBuffer();
-            for (int i = 0; i < messageDigest.length; i++) {
-                String h = Integer.toHexString(0xFF & messageDigest[i]);
-                while (h.length() < 2)
-                    h = "0" + h;
-                hexString.append(h);
-            }
-            return hexString.toString();
-
-        } catch (NoSuchAlgorithmException e) {
-        }
-        return "";
-    }
-
 
 }
