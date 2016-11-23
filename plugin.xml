@@ -22,10 +22,13 @@
     </js-module>
 
 	
-<dependency id="cordova-admob-sdklibs"/>
     <!-- android -->
     <!-- android, now build with gradle instead of ant -->
     <platform name="android">
+	    		<framework src="com.google.android.gms:play-services-base:+" />
+        <framework src="com.google.android.gms:play-services-ads:+" />
+
+	    
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
             <activity android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" 
                       android:name="com.google.android.gms.ads.AdActivity"
