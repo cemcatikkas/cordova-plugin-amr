@@ -5,7 +5,7 @@ repositories {
 }
 
 dependencies {
-	compile(name: 'admost-sdk', ext: 'aar')
+	compile(name: 'admost-sdk-debug', ext: 'aar')
 }
 
 android {
