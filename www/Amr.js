@@ -22,23 +22,20 @@
 var argscheck = require('cordova/argscheck'),
     exec = require('cordova/exec');
 
-var admobExport = {};
+var amrExport = {};
 
 /**
- * This enum represents AdMob's supported ad sizes.  Use one of these
+ * This enum represents Amr's supported ad sizes.  Use one of these
  * constants as the adSize when calling createBannerView.
  * @const
  */
-admobExport.AD_SIZE = {
-  BANNER: 'BANNER',
-  IAB_MRECT: 'IAB_MRECT',
-  IAB_BANNER: 'IAB_BANNER',
-  IAB_LEADERBOARD: 'IAB_LEADERBOARD',
-  LARGE_BANNER: 'LARGE_BANNER',
-  SMART_BANNER: 'SMART_BANNER'
+amrExport.AD_SIZE = {
+  BANNER: 50,
+  LEADERBOARD: 90,
+  MEDIUM_RECTANGLE: 250
 };
 
-admobExport.setOptions =
+amrExport.setOptions =
 	function(options, successCallback, failureCallback) {
 	  if(typeof options === 'object' 
 		  && typeof options.publisherId === 'string'
@@ -46,7 +43,7 @@ admobExport.setOptions =
 		  cordova.exec(
 			      successCallback,
 			      failureCallback,
-			      'AdMob',
+			      'Amr',
 			      'setOptions',
 			      [options]
 			  );
@@ -58,18 +55,18 @@ admobExport.setOptions =
 	};
 
 /**
- * Creates a new AdMob banner view.
+ * Creates a new Amr banner view.
  *
  * @param {!Object} options The options used to create a banner.  They should
  *        be specified similar to the following.
  *
  *        {
  *          'publisherId': 'MY_PUBLISHER_ID',
- *          'adSize': AdMob.AD_SIZE.AD_SIZE_CONSTANT,
+ *          'adSize': Amr.AD_SIZE.AD_SIZE_CONSTANT,
  *          'positionAtTop': false
  *        }
  *
- *        publisherId is the publisher ID from your AdMob site, adSize
+ *        publisherId is the publisher ID from your Amr site, adSize
  *        is one of the AdSize constants, and positionAtTop is a boolean to
  *        determine whether to create the banner above or below the app content.
  *        A publisher ID and AdSize are required.  The default for postionAtTop
@@ -79,20 +76,20 @@ admobExport.setOptions =
  * @param {function()} failureCallback The function to call if create banner
  *         was unsuccessful.
  */
-admobExport.createBannerView =
+amrExport.createBannerView =
 function(options, successCallback, failureCallback) {
   if(typeof options === 'undefined' || options == null) options = {};
   cordova.exec(
       successCallback,
       failureCallback,
-      'AdMob',
+      'Amr',
       'createBannerView',
       [ options ]
   );
 };
 
 /**
- * Creates a new AdMob interstitial view.
+ * Creates a new Amr interstitial view.
  *
  * @param {!Object} options The options used to create a interstitial.  They should
  *        be specified similar to the following.
@@ -101,37 +98,51 @@ function(options, successCallback, failureCallback) {
  *          'publisherId': 'MY_PUBLISHER_ID'
  *        }
  *
- *        publisherId is the publisher ID from your AdMob site, which is required.  
+ *        publisherId is the publisher ID from your Amr site, which is required.  
  * @param {function()} successCallback The function to call if the interstitial was
  *         created successfully.
  * @param {function()} failureCallback The function to call if create interstitial
  *         was unsuccessful.
  */
-admobExport.createInterstitialView =
+amrExport.createInterstitialView =
 function(options, successCallback, failureCallback) {
   cordova.exec(
       successCallback,
       failureCallback,
-      'AdMob',
+      'Amr',
       'createInterstitialView',
       [ options ]
   );
 };
 
-admobExport.destroyBannerView =
+amrExport.initAMR =
+function(options, successCallback, failureCallback) {
+  if(typeof options === 'undefined' || options == null) options = {};
+  cordova.exec(
+      successCallback,
+      failureCallback,
+      'Amr',
+      'initAMR',
+      [ options ]
+  );
+};
+
+
+
+amrExport.destroyBannerView =
 function(options, successCallback, failureCallback) {
   if(typeof options === 'undefined' || options == null) options = {};
   cordova.exec(
 	      successCallback,
 	      failureCallback,
-	      'AdMob',
+	      'Amr',
 	      'destroyBannerView',
 	      []
 	  );
 };
 
 /**
- * Request an AdMob ad.  This call should not be made until after the banner
+ * Request an Amr ad.  This call should not be made until after the banner
  * view has been successfully created.
  *
  * @param {!Object} options The options used to request an ad.  They should
@@ -154,20 +165,20 @@ function(options, successCallback, failureCallback) {
  *        to be requested.
  */
 
-admobExport.requestAd =
+amrExport.requestAd =
 function(options, successCallback, failureCallback) {
 	  if(typeof options === 'undefined' || options == null) options = {};
   cordova.exec(
       successCallback,
       failureCallback,
-      'AdMob',
+      'Amr',
       'requestAd',
       [ options ]
   );
 };
 
 /**
- * Request an AdMob interstitial ad.  This call should not be made until after the banner
+ * Request an Amr interstitial ad.  This call should not be made until after the banner
  * view has been successfully created.
  *
  * @param {!Object} options The options used to request an ad.  They should
@@ -190,13 +201,13 @@ function(options, successCallback, failureCallback) {
  *        to be requested.
  */
 
-admobExport.requestInterstitialAd =
+amrExport.requestInterstitialAd =
 function(options, successCallback, failureCallback) {
 	  if(typeof options === 'undefined' || options == null) options = {};
   cordova.exec(
       successCallback,
       failureCallback,
-      'AdMob',
+      'Amr',
       'requestInterstitialAd',
       [ options ]
   );
@@ -211,7 +222,7 @@ function(options, successCallback, failureCallback) {
  * @param {function()} failureCallback The function to call if an ad failed
  *        to be requested.
  */
-admobExport.showAd = 
+amrExport.showAd = 
 function( show, successCallback, failureCallback) {
 	if (show === undefined) {
 		show = true;
@@ -220,13 +231,13 @@ function( show, successCallback, failureCallback) {
 	cordova.exec(
 		successCallback,
 		failureCallback, 
-		'AdMob', 
+		'Amr', 
 		'showAd', 
 		[ show ]
 	);
 };
 
-admobExport.showInterstitialAd = 
+amrExport.showInterstitialAd = 
 	function( show, successCallback, failureCallback) {
 		if (show === undefined) {
 			show = true;
@@ -235,10 +246,10 @@ admobExport.showInterstitialAd =
 		cordova.exec(
 			successCallback,
 			failureCallback, 
-			'AdMob', 
+			'Amr', 
 			'showInterstitialAd', 
 			[ show ]
 		);
 	};
 
-module.exports = admobExport;
+module.exports = amrExport;
