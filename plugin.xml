@@ -22,7 +22,7 @@
     </js-module>
 
 	
-<dependency id="cordova-amr-sdklibs"/>
+<dependency id="cordova-admob-sdklibs"/>
     <!-- android -->
     <!-- android, now build with gradle instead of ant -->
     <platform name="android">
