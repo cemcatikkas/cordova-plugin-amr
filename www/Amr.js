@@ -117,7 +117,6 @@ function(options, successCallback, failureCallback) {
 
 amrExport.initAMR =
 function(options, successCallback, failureCallback) {
-  if(typeof options === 'undefined' || options == null) options = {};
   cordova.exec(
       successCallback,
       failureCallback,
