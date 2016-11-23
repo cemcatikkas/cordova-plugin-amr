@@ -185,7 +185,7 @@ public class Amr extends CordovaPlugin {
         this.setOptions( options );
 
         if(this.amrAppId.length() < 5){
-            Log.e("AMR", "Please set amrAppId parameter.");
+            Log.e(LOGTAG, "Please set amrAppId parameter.");
             return null;
         }
         cordova.getActivity().runOnUiThread(new Runnable(){
@@ -195,7 +195,7 @@ public class Amr extends CordovaPlugin {
                 if (!AdMost.getInstance().isInited()) {
                     AdMostConfiguration.Builder configuration = new AdMostConfiguration.Builder(cordova.getActivity(), Amr.this.amrAppId);
                     AdMost.getInstance().init(configuration.build());
-                    Log.w("AMR", "Init Called");
+                    Log.w(LOGTAG, "Init Called");
                 }
 
                 callbackContext.success();
@@ -212,7 +212,7 @@ public class Amr extends CordovaPlugin {
 
 
         if(this.amrBannerZoneId.length() < 5){
-            Log.e("AMR", "Please set amrBannerZoneId parameter.");
+            Log.e(LOGTAG, "Please set amrBannerZoneId parameter.");
             return null;
         }
 
@@ -287,7 +287,7 @@ public class Amr extends CordovaPlugin {
                     public void onAction(int actionType) {
                         switch (actionType) {
                             case AdMostAdListener.LOADED:
-                                Log.w("AdMob", "InterstitialAdLoaded");
+                                Log.w(LOGTAG, "InterstitialAdLoaded");
                                 webView.loadUrl("javascript:cordova.fireDocumentEvent('onReceiveInterstitialAd');");
 
                                 if(autoShowInterstitial) {
@@ -299,16 +299,26 @@ public class Amr extends CordovaPlugin {
                                 break;
                             case AdMostAdListener.FAILED:
                                 webView.loadUrl(String.format(
-                                        "javascript:cordova.fireDocumentEvent('onFailedToReceiveAd', { 'error': %d, 'reason':'%s' });",
+                                        "javascript:cordova.fireDocumentEvent('onFailedToReceiveInterstitialAd', { 'error': %d, 'reason':'%s' });",
                                         -1, "No Fill"));
                                 break;
                             case AdMostAdListener.COMPLETED:
-                                webView.loadUrl("javascript:cordova.fireDocumentEvent('onPresentInterstitialAd');");
                                 break;
                             case AdMostAdListener.CLOSED:
-                                webView.loadUrl("javascript:cordova.fireDocumentEvent('onDismissAd');");
+                                webView.loadUrl("javascript:cordova.fireDocumentEvent('onDismissInterstitialAd');");
                                 interstitialAd.destroy();
                         }
+                    }
+
+                    @Override
+                    public void onShown(String s) {
+                        super.onShown(s);
+                        webView.loadUrl("javascript:cordova.fireDocumentEvent('onShownInterstitialAd');");
+                    }
+
+                    @Override
+                    public void onClicked(String s) {
+                        super.onClicked(s);
                     }
                 });
                 executeRequestInterstitialAd(options, callbackContext);
@@ -425,6 +435,8 @@ public class Amr extends CordovaPlugin {
 
                     adView.getView().setVisibility( View.VISIBLE );
                     bannerVisible = true;
+
+                    webView.loadUrl("javascript:cordova.fireDocumentEvent('onShownAd');");
 
                 } else {
                     adView.getView().setVisibility( View.GONE );
