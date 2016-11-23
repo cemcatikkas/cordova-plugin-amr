@@ -228,13 +228,10 @@ public class Amr extends CordovaPlugin {
                 adView = new AdMostView(cordova.getActivity(), Amr.this.amrBannerZoneId, adSize, new AdMostViewListener() {
                     @Override
                     public void onLoad(String network, int position) {
-                        switch (network) {
-                            case AdMostAdNetwork.NO_NETWORK:
-                                callbackContext.error(AdMostAdNetwork.NO_NETWORK);
-                                break;
-                            default:
-                                callbackContext.success();
-                                break;
+                        if (network.equals(AdMostAdNetwork.NO_NETWORK)) {
+                            callbackContext.error(AdMostAdNetwork.NO_NETWORK);
+                        } else {
+                            callbackContext.success();
                         }
                     }
                 }, null);
