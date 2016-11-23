@@ -25,10 +25,11 @@
     <!-- android -->
     <!-- android, now build with gradle instead of ant -->
     <platform name="android">
-	    		<framework src="com.google.android.gms:play-services-base:+" />
+		<framework src="com.google.android.gms:play-services-base:+" />
         <framework src="com.google.android.gms:play-services-ads:+" />
-
-	    
+		<framework src="src/android/gradle/amr.gradle" custom="true" type="gradleReference" />
+		<resource-file src="src/android/libs/admost-sdk-debug.aar" target="libs/admost-sdk-debug.aar" />
+	
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
             <activity android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" 
                       android:name="com.google.android.gms.ads.AdActivity"
