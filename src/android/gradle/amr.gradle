@@ -8,6 +8,8 @@ dependencies {
 	compile 'com.android.volley:volley:1.0.0'
 	compile(name: 'admost-sdk-debug', ext: 'aar')
 	compile(name: 'AudienceNetwork', ext: 'aar')
+	compile(name: 'unity-ads', ext: 'aar')
+	compile name: 'revmob'
 }
 
 android {
