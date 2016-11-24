@@ -38,7 +38,7 @@ public class Amr extends CordovaPlugin {
     private static final String ACTION_CREATE_INTERSTITIAL_AD = "createInterstitialAd";
     private static final String ACTION_REQUEST_INTERSTITIAL_AD = "requestInterstitialAd";
     private static final String ACTION_SHOW_INTERSTITIAL_AD = "showInterstitialAd";
-    private static final String ACTION_CREATE_VIDEO_AD = "createVideoView";
+    private static final String ACTION_CREATE_VIDEO_AD = "createVideoAd";
     private static final String ACTION_REQUEST_VIDEO_AD = "requestVideoAd";
     private static final String ACTION_SHOW_VIDEO_AD = "showVideoAd";
 
