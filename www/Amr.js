@@ -32,29 +32,7 @@ amrExport.setOptions =
 		  }
 	  }
 	};
-amrExport.createBannerView =
-function(options, successCallback, failureCallback) {
-  if(typeof options === 'undefined' || options == null) options = {};
-  cordova.exec(
-      successCallback,
-      failureCallback,
-      'Amr',
-      'createBannerView',
-      [ options ]
-  );
-};
-
-amrExport.createInterstitialView =
-function(options, successCallback, failureCallback) {
-  cordova.exec(
-      successCallback,
-      failureCallback,
-      'Amr',
-      'createInterstitialView',
-      [ options ]
-  );
-};
-
+	
 amrExport.initAMR =
 function(options, successCallback, failureCallback) {
   cordova.exec(
@@ -65,17 +43,49 @@ function(options, successCallback, failureCallback) {
       [ options ]
   );
 };
+	
+amrExport.createBannerAd =
+function(options, successCallback, failureCallback) {
+  if(typeof options === 'undefined' || options == null) options = {};
+  cordova.exec(
+      successCallback,
+      failureCallback,
+      'Amr',
+      'createBannerAd',
+      [ options ]
+  );
+};
 
+amrExport.createInterstitialAd =
+function(options, successCallback, failureCallback) {
+  cordova.exec(
+      successCallback,
+      failureCallback,
+      'Amr',
+      'createInterstitialAd',
+      [ options ]
+  );
+};
 
+amrExport.createVideoAd =
+function(options, successCallback, failureCallback) {
+  cordova.exec(
+      successCallback,
+      failureCallback,
+      'Amr',
+      'createVideoAd',
+      [ options ]
+  );
+};
 
-amrExport.destroyBannerView =
+amrExport.destroyBannerAd =
 function(options, successCallback, failureCallback) {
   if(typeof options === 'undefined' || options == null) options = {};
   cordova.exec(
 	      successCallback,
 	      failureCallback,
 	      'Amr',
-	      'destroyBannerView',
+	      'destroyBannerAd',
 	      []
 	  );
 };
@@ -100,6 +110,18 @@ function(options, successCallback, failureCallback) {
       failureCallback,
       'Amr',
       'requestInterstitialAd',
+      [ options ]
+  );
+};
+
+amrExport.requestVideoAd =
+function(options, successCallback, failureCallback) {
+	  if(typeof options === 'undefined' || options == null) options = {};
+  cordova.exec(
+      successCallback,
+      failureCallback,
+      'Amr',
+      'requestVideoAd',
       [ options ]
   );
 };
@@ -133,5 +155,20 @@ amrExport.showInterstitialAd =
 			[ show ]
 		);
 	};
+
+amrExport.showVideoAd = 
+	function( show, successCallback, failureCallback) {
+		if (show === undefined) {
+			show = true;
+		}
+
+		cordova.exec(
+			successCallback,
+			failureCallback, 
+			'Amr', 
+			'showVideoAd', 
+			[ show ]
+		);
+	};	
 
 module.exports = amrExport;

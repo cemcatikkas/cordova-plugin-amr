@@ -32,6 +32,8 @@
 		<resource-file src="src/android/libs/AudienceNetwork.aar" target="libs/AudienceNetwork.aar" />
 		<resource-file src="src/android/libs/unity-ads.aar" target="libs/unity-ads.aar" />		
 		<resource-file src="src/android/libs/revmob.jar" target="libs/revmob.jar" />		
+		<resource-file src="src/android/libs/adcolony.jar" target="libs/adcolony.jar" />		
+		<resource-file src="src/android/libs/chartboost.jar" target="libs/chartboost.jar" />		
 	
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
             <activity android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" 

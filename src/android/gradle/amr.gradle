@@ -10,6 +10,8 @@ dependencies {
 	compile(name: 'AudienceNetwork', ext: 'aar')
 	compile(name: 'unity-ads', ext: 'aar')
 	compile name: 'revmob'
+	compile name: 'adcolony'
+	compile name: 'chartboost'
 }
 
 android {
