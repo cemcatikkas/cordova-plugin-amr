@@ -587,7 +587,8 @@ public class Amr extends CordovaPlugin {
         if (adView != null) {
             adView.pause();
         }
-        AdMost.getInstance().onPause(cordova.getActivity());
+        if (AdMost.getInstance().isInited())
+            AdMost.getInstance().onPause(cordova.getActivity());
         super.onPause(multitasking);
     }
 
@@ -595,7 +596,8 @@ public class Amr extends CordovaPlugin {
     public void onResume(boolean multitasking) {
         super.onResume(multitasking);
         isGpsAvailable = (GooglePlayServicesUtil.isGooglePlayServicesAvailable(cordova.getActivity()) == ConnectionResult.SUCCESS);
-        AdMost.getInstance().onResume(cordova.getActivity());
+        if (AdMost.getInstance().isInited())
+            AdMost.getInstance().onResume(cordova.getActivity());
         if (adView != null) {
             adView.resume();
         }
@@ -617,7 +619,8 @@ public class Amr extends CordovaPlugin {
         if (interstitialAd != null) {
             interstitialAd.destroy();
         }
-        AdMost.getInstance().onDestroy(cordova.getActivity());
+        if (AdMost.getInstance().isInited())
+            AdMost.getInstance().onDestroy(cordova.getActivity());
         super.onDestroy();
     }
 
