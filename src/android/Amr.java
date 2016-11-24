@@ -368,7 +368,7 @@ public class Amr extends CordovaPlugin {
                                 break;
                             case AdMostAdListener.CLOSED:
                                 sendResponseToListener(onDismissVideoAd, null);
-                                interstitialAd.destroy();
+                                videoAd.destroy();
                         }
                     }
 
@@ -619,6 +619,9 @@ public class Amr extends CordovaPlugin {
         if (interstitialAd != null) {
             interstitialAd.destroy();
         }
+        if (videoAd != null) {
+            videoAd.destroy();
+        }
         if (AdMost.getInstance().isInited())
             AdMost.getInstance().onDestroy(cordova.getActivity());
         super.onDestroy();
@@ -633,8 +636,9 @@ public class Amr extends CordovaPlugin {
     }
 
     private void sendResponseToListener(String event, String extra) {
-        webView.loadUrl("javascript:cordova.fireDocumentEvent('" + event + "'" + (extra == null ? "" : "," + extra) + ");");
         Log.i(LOGTAG, event);
+        if (webView != null && webView.isInitialized())
+            webView.loadUrl("javascript:cordova.fireDocumentEvent('" + event + "'" + (extra == null ? "" : "," + extra) + ");");
     }
 
 }
