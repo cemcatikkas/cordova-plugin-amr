@@ -40,7 +40,8 @@
 		<resource-file src="src/android/libs/javax.inject-1.jar" target="libs/javax.inject-1.jar" />
 		<resource-file src="src/android/libs/nineoldandroids-2.4.0.jar" target="libs/nineoldandroids-2.4.0.jar" />
 		<resource-file src="src/android/libs/vungle-publisher-adaptive-id-4.0.2.jar" target="libs/vungle-publisher-adaptive-id-4.0.2.jar" />
-	
+		<resource-file src="src/android/libs/MobFox-Android-SDK-Core-3.0.0b.jar" target="libs/MobFox-Android-SDK-Core-3.0.0b.jar" />
+			
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
             <receiver
 				android:name="com.inmobi.commons.core.utilities.uid.ImIdShareBroadCastReceiver"
@@ -50,8 +51,11 @@
 					<action android:name="com.inmobi.share.id"/>
 				</intent-filter>
 			</receiver>
+			
+			<meta-data android:name="applovin.sdk.key"
+                   android:value="LN_kr2mUpK0zI5JgqhgM2IW5FkVtb0pxOpeDsPifkic1owhcbM-efUlwDEnpFZkdNNrDnTtVFUW2ODe_ZceD6N"  />
         </config-file>
-		
+				
         <config-file target="AndroidManifest.xml" parent="/*">
             <uses-permission android:name="android.permission.INTERNET"/>
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
