@@ -15,8 +15,8 @@ dependencies {
 	compile name: 'chartboost'
 	compile name: 'dagger-2.4'
 	compile name: 'javax.inject-1'
-	compile name: 'nineoldandroids-2.4.0'
 	compile name: 'vungle-publisher-adaptive-id-4.0.2'
+	compile name: 'applovin-sdk-6.3.0'
 
     compile 'com.adcolony:sdk:3.0.5'
     compile 'com.android.support:support-annotations:24.2.0'
