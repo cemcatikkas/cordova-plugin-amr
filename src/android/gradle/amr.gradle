@@ -1,17 +1,25 @@
 repositories {
+    jcenter()
     flatDir {
         dirs 'libs'
     }
+    maven { url "https://adcolony.bintray.com/AdColony" }
 }
 
 dependencies {
 	compile 'com.android.volley:volley:1.0.0'
 	compile(name: 'admost-sdk-debug', ext: 'aar')
-	compile(name: 'AudienceNetwork', ext: 'aar')
+	compile(name: 'AudienceNetwork.4.15.Rewarded', ext: 'aar')
 	compile(name: 'unity-ads', ext: 'aar')
 	compile name: 'revmob'
-	compile name: 'adcolony'
 	compile name: 'chartboost'
+	compile name: 'dagger-2.4'
+	compile name: 'javax.inject-1.jar'
+	compile name: 'nineoldandroids-2.4.0'
+	compile name: 'vungle-publisher-adaptive-id-4.0.2'
+
+    compile 'com.adcolony:sdk:3.0.5'
+    compile 'com.android.support:support-annotations:24.2.0'
 }
 
 android {
