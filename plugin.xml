@@ -41,7 +41,6 @@
 		<resource-file src="src/android/libs/nineoldandroids-2.4.0.jar" target="libs/nineoldandroids-2.4.0.jar" />
 		<resource-file src="src/android/libs/vungle-publisher-adaptive-id-4.0.2.jar" target="libs/vungle-publisher-adaptive-id-4.0.2.jar" />
 		<resource-file src="src/android/libs/MobFox-Android-SDK-Core-3.0.0b.jar" target="libs/MobFox-Android-SDK-Core-3.0.0b.jar" />
-			
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
             <receiver
 				android:name="com.inmobi.commons.core.utilities.uid.ImIdShareBroadCastReceiver"
