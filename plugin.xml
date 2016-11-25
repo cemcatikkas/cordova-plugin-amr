@@ -41,11 +41,17 @@
 		<resource-file src="src/android/libs/nineoldandroids-2.4.0.jar" target="libs/nineoldandroids-2.4.0.jar" />
 		<resource-file src="src/android/libs/vungle-publisher-adaptive-id-4.0.2.jar" target="libs/vungle-publisher-adaptive-id-4.0.2.jar" />
 	
-        <!--config-file target="AndroidManifest.xml" parent="/manifest/application">
-            <activity android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" 
-                      android:name="com.google.android.gms.ads.AdActivity"
-                      android:theme="@android:style/Theme.Translucent" />
-        </config-file -->
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+            <receiver
+            android:name="com.inmobi.commons.core.utilities.uid.ImIdShareBroadCastReceiver"
+            android:enabled="true"
+            android:exported="true"
+            tools:ignore="ExportedReceiver">
+            <intent-filter>
+                <action android:name="com.inmobi.share.id"/>
+            </intent-filter>
+			</receiver>
+        </config-file>
 		
         <config-file target="AndroidManifest.xml" parent="/*">
             <uses-permission android:name="android.permission.INTERNET"/>
