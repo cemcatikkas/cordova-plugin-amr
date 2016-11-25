@@ -29,7 +29,7 @@
 		<framework src="com.google.android.gms:play-services-ads:+" />
 		<framework src="src/android/gradle/amr.gradle" custom="true" type="gradleReference" />
 		<resource-file src="src/android/libs/admost-sdk-debug.aar" target="libs/admost-sdk-debug.aar" />
-		<resource-file src="src/android/libs/AudienceNetwork.aar" target="libs/AudienceNetwork.aar" />
+		<resource-file src="src/android/libs/AudienceNetwork-4.18.0.b.aar" target="libs/AudienceNetwork-4.18.0.b.aar" />
 		<resource-file src="src/android/libs/unity-ads.aar" target="libs/unity-ads.aar" />		
 		<resource-file src="src/android/libs/revmob.jar" target="libs/revmob.jar" />		
 		<resource-file src="src/android/libs/adcolony.jar" target="libs/adcolony.jar" />		
