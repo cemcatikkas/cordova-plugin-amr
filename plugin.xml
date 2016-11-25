@@ -32,7 +32,6 @@
 		<resource-file src="src/android/libs/AudienceNetwork-4.18.0.b.aar" target="libs/AudienceNetwork-4.18.0.b.aar" />
 		<resource-file src="src/android/libs/unity-ads.aar" target="libs/unity-ads.aar" />		
 		<resource-file src="src/android/libs/revmob.jar" target="libs/revmob.jar" />		
-		<resource-file src="src/android/libs/adcolony.jar" target="libs/adcolony.jar" />		
 		<resource-file src="src/android/libs/chartboost.jar" target="libs/chartboost.jar" />
 		
 		<resource-file src="src/android/libs/dagger-2.4.jar" target="libs/dagger-2.4.jar" />
