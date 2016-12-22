@@ -18,6 +18,7 @@ dependencies {
     compile(name: 'admost-sdk', ext: 'aar')
     compile(name: 'AudienceNetwork', ext: 'aar')
     compile(name: 'unity-ads', ext: 'aar')
+    compile(name: 'mm-ad-sdk', ext: 'aar')
 
     // GOOGLE
     compile 'com.google.android.gms:play-services-ads:10.0.1'
